@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import QRCode from 'qrcode';
 
-  let qrCodeData = 'https://codesphere.com/';
+  let qrCodeData = '';
   let qrCodeSize = 200;
 
   onMount(() => {
@@ -11,10 +11,22 @@
 
   function generateQRCode() {
     const canvas = document.getElementById('qrcode');
-    QRCode.toCanvas(canvas, qrCodeData, { width: qrCodeSize, height: qrCodeSize }, function (error) {
+    QRCode.toCanvas(canvas, qrCodeData, {errorCorrectionLevel: 'S', width: qrCodeSize, height: qrCodeSize }, function (error) {
       if (error) console.error(error);
       console.log('QR Code generated!');
     });
+  }
+
+  function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        qrCodeData = reader.result;
+        generateQRCode();
+      };
+      reader.readAsText(file);
+    }
   }
 
   function copyToClipboard() {
@@ -47,7 +59,7 @@
 </style>
 
 <div>
-  <input bind:value={qrCodeData} placeholder="Enter data" on:input={generateQRCode} />
+  <input type="file" accept=".ics" on:change={handleFileUpload} />
   <input type="number" bind:value={qrCodeSize} placeholder="Enter size" on:input={generateQRCode} />
   <canvas id="qrcode"></canvas>
   <button on:click={copyToClipboard}>Copy to Clipboard</button>
